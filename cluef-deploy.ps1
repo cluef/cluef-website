@@ -24,8 +24,8 @@ npm install -g netlify-cli
 
 # 3. Git konfigurieren (ersetze NAME und EMAIL)
 Write-Host "Konfiguriere Git..."
-git config --global user.name "Dein Name"
-git config --global user.email "deine@email.com"
+git config --global user.name "Anouar"
+git config --global user.email "anouar@assila.group"
 
 # 4. GitHub-Repository initialisieren und pushen
 Write-Host "Initialisiere Git-Repository..."
