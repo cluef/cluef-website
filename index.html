@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cluef – Cloud-Empfehlungsplattform</title>
   <link href="https://fonts.googleapis.com/css?family=Inter:400,700&display=swap" rel="stylesheet">
-  <!-- Auth0 SDK -->
-  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
   <style>
     :root {
       --dark-bg: #181a20;
@@ -515,8 +513,56 @@
     <p style="font-size:0.9em; opacity:0.7;">Wir erhalten ggf. Affiliate-Provisionen, unsere Empfehlungen bleiben jedoch strikt unabhängig.</p>
   </footer>
 
+  <!-- Auth0 SDK + Initialisierung -->
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
   <script>
-    // Seitenumschaltung
+    const auth0Config = {
+      domain: "dev-t1ny22z2aw3ppns2.us.auth0.com",
+      clientId: "MQDJdpQhMUQATtlQfHVq6yJhlLC8UOuF",
+      authorizationParams: {
+        redirect_uri: window.location.origin
+      }
+    };
+
+    let auth0Client = null;
+
+    async function updateAuth0UI() {
+      const isAuthenticated = await auth0Client.isAuthenticated();
+      document.getElementById('login-btn').style.display = isAuthenticated ? 'none' : 'block';
+      document.getElementById('logout-btn').style.display = isAuthenticated ? 'block' : 'none';
+      if (isAuthenticated) {
+        const user = await auth0Client.getUser();
+        document.getElementById('profile-info').textContent = user.name || user.email;
+        document.getElementById('profile-info').style.display = 'inline-block';
+      } else {
+        document.getElementById('profile-info').style.display = 'none';
+      }
+    }
+
+    async function initAuth0() {
+      auth0Client = await createAuth0Client(auth0Config);
+
+      document.getElementById('login-btn').addEventListener('click', () => {
+        auth0Client.loginWithRedirect();
+      });
+
+      document.getElementById('logout-btn').addEventListener('click', () => {
+        auth0Client.logout({
+          logoutParams: { returnTo: window.location.origin }
+        });
+      });
+
+      if (window.location.search.includes('code=')) {
+        await auth0Client.handleRedirectCallback();
+        window.history.replaceState({}, document.title, '/');
+      }
+
+      await updateAuth0UI();
+    }
+
+    document.addEventListener('DOMContentLoaded', initAuth0);
+
+    // Seitenumschaltung (wie gehabt)
     function showSection(sectionId) {
       document.querySelectorAll('section').forEach(section => {
         section.classList.remove('active');
@@ -524,143 +570,6 @@
       document.getElementById(sectionId).classList.add('active');
       window.scrollTo(0, 0);
     }
-
-    // Auth0 Konfiguration – Deine Daten!
-    const auth0Config = {
-      domain: "dev-t1ny22z2aw3ppns2.us.auth0.com",
-      clientId: "MQDJdpQhMUQATtlQfHVq6yJhlLC8UOuF",
-      redirect_uri: window.location.origin
-    };
-
-    let auth0 = null;
-    let isAuthenticated = false;
-    let user = null;
-    let promptCount = 0;
-    const MAX_UNAUTH_PROMPTS = 3;
-
-    function showLoginModal() {
-      document.getElementById('login-modal').style.display = 'flex';
-    }
-    function hideLoginModal() {
-      document.getElementById('login-modal').style.display = 'none';
-    }
-
-    // Auth0 Initialisierung und UI-Handling
-    async function initAuth0() {
-      auth0 = await createAuth0Client(auth0Config);
-
-      // Handle Redirect-Callback nach Login
-      if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
-        await auth0.handleRedirectCallback();
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-
-      isAuthenticated = await auth0.isAuthenticated();
-      const loginBtn = document.getElementById("login-btn");
-      const logoutBtn = document.getElementById("logout-btn");
-      const profileInfo = document.getElementById("profile-info");
-      const welcomeUser = document.getElementById("welcome-user");
-      const proHint = document.getElementById("pro-hint");
-
-      if (isAuthenticated) {
-        user = await auth0.getUser();
-        loginBtn.style.display = "none";
-        logoutBtn.style.display = "inline-block";
-        profileInfo.style.display = "inline-block";
-        profileInfo.textContent = user.name || user.email || "Eingeloggt";
-        welcomeUser.style.display = "inline-block";
-        welcomeUser.textContent = `Willkommen, ${user.name || user.email}!`;
-        proHint.style.display = "block";
-        // Prompt-Limit zurücksetzen
-        localStorage.removeItem('cluef_prompt_count');
-        promptCount = 0;
-      } else {
-        loginBtn.style.display = "inline-block";
-        logoutBtn.style.display = "none";
-        profileInfo.style.display = "none";
-        profileInfo.textContent = "";
-        welcomeUser.style.display = "none";
-        proHint.style.display = "none";
-        promptCount = parseInt(localStorage.getItem('cluef_prompt_count') || '0');
-      }
-    }
-
-    function canMakeMoreRequests() {
-      if (isAuthenticated) return true;
-      return promptCount < MAX_UNAUTH_PROMPTS;
-    }
-
-    function incrementPromptCount() {
-      if (!isAuthenticated) {
-        promptCount++;
-        localStorage.setItem('cluef_prompt_count', promptCount.toString());
-      }
-    }
-
-    // KI-Funktion: Anfrage an Netlify Function
-    async function getCluefRecommendation(userPrompt) {
-      if (!canMakeMoreRequests()) {
-        showLoginModal();
-        return "Bitte melde dich an, um weitere Empfehlungen zu erhalten.";
-      }
-      incrementPromptCount();
-
-      const resultsDiv = document.getElementById('recommendationResults');
-      resultsDiv.innerHTML = `<span class="spinner"></span> Die KI arbeitet ...`;
-
-      try {
-        const headers = { 'Content-Type': 'application/json' };
-        if (isAuthenticated) {
-          headers['Authorization'] = `Bearer ${await auth0.getTokenSilently()}`;
-        }
-        const response = await fetch('/.netlify/functions/cluef-ai', {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({ prompt: userPrompt })
-        });
-        if (!response.ok) {
-          throw new Error('Fehler beim Abrufen der KI-Antwort');
-        }
-        const data = await response.json();
-        return data.reply;
-      } catch (error) {
-        return "Es gab ein Problem bei der Anfrage: " + error.message;
-      }
-    }
-
-    document.addEventListener("DOMContentLoaded", async () => {
-      await initAuth0();
-
-      document.getElementById("login-btn").addEventListener("click", () => {
-        auth0.loginWithRedirect();
-      });
-      document.getElementById("logout-btn").addEventListener("click", () => {
-        auth0.logout({ returnTo: window.location.origin });
-      });
-      document.getElementById("modal-login-button").addEventListener("click", () => {
-        hideLoginModal();
-        auth0.loginWithRedirect();
-      });
-
-      // Formular-Handler
-      document.getElementById('recommendationForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const userPrompt = document.getElementById('projectDescription').value.trim();
-        const resultsDiv = document.getElementById('recommendationResults');
-
-        if (!canMakeMoreRequests()) {
-          showLoginModal();
-          return;
-        }
-
-        resultsDiv.innerHTML = `<span class="spinner"></span> Die KI arbeitet ...`;
-        const reply = await getCluefRecommendation(userPrompt);
-        resultsDiv.innerText = reply;
-      });
-
-      // Standardmäßig Startseite anzeigen
-      showSection('home');
-    });
   </script>
 </body>
 </html>
