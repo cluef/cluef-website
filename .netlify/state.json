@@ -1,0 +1,21 @@
+{
+	"geolocation": {
+		"data": {
+			"city": "Wuppertal",
+			"country": {
+				"code": "DE",
+				"name": "Germany"
+			},
+			"subdivision": {
+				"code": "NW",
+				"name": "North Rhine-Westphalia"
+			},
+			"timezone": "Europe/Berlin",
+			"latitude": 51.2603,
+			"longitude": 7.1518,
+			"postalCode": "42107"
+		},
+		"timestamp": 1746189755837
+	},
+	"siteId": "4b77fdbf-9d34-462a-8c3e-da76ec5ba280"
+}
