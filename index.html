@@ -414,7 +414,6 @@
     .login-modal p {
       margin-bottom: 24px;
     }
-    /* Responsive Design */
     @media (max-width: 900px) {
       .cloud-types, .features, .pricing-table { flex-direction: column; align-items: center; }
       .recommendation-page { padding: 18px; }
@@ -426,7 +425,6 @@
         padding-right: 10px;
       }
     }
-    /* Footer Styles */
     footer {
       background: var(--dark-bg);
       color: var(--text);
@@ -740,6 +738,31 @@
       document.getElementById(sectionId).classList.add('active');
       window.scrollTo(0, 0);
     }
+
+    // KI-Prompt an Netlify Function schicken (OpenAI)
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('recommendationForm');
+      if (form) {
+        form.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          const userPrompt = document.getElementById('projectDescription').value.trim();
+          const resultsDiv = document.getElementById('recommendationResults');
+          resultsDiv.innerHTML = `<span class="spinner"></span> Die KI arbeitet ...`;
+
+          try {
+            const response = await fetch('/.netlify/functions/fetch-openai', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ prompt: userPrompt })
+            });
+            const data = await response.json();
+            resultsDiv.innerText = data.reply || "Keine Antwort erhalten.";
+          } catch (error) {
+            resultsDiv.innerText = "Es gab ein Problem bei der Anfrage: " + error.message;
+          }
+        });
+      }
+    });
   </script>
 </body>
 </html>
