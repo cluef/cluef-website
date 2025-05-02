@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cluef – Cloud-Empfehlungsplattform</title>
+  <link href="https://fonts.googleapis.com/css?family=Inter:400,700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --dark-bg: #181a20;
+      --card-bg: #23262f;
+      --accent: #00bfae;
+      --accent-hover: #009e93;
+      --text: #f9f9fb;
+      --muted: #2c2f38;
+      --shadow: 0 4px 24px rgba(0,0,0,0.18);
+    }
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      margin: 0;
+      background: var(--dark-bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header {
+      background: var(--card-bg);
+      color: var(--text);
+      padding: 32px 0 18px 0;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+    .logo {
+      margin-bottom: 10px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2.3rem;
+      font-weight: 700;
+      letter-spacing: -1px;
+    }
+    header p {
+      margin: 10px 0 0 0;
+      font-size: 1.12rem;
+      opacity: 0.88;
+    }
+    nav {
+      margin-top: 14px;
+    }
+    nav a {
+      color: var(--accent);
+      margin: 0 16px;
+      text-decoration: none;
+      font-weight: 500;
+      opacity: 0.96;
+      transition: opacity 0.2s;
+      cursor: pointer;
+    }
+    nav a:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    section {
+      display: none;
+    }
+    section.active {
+      display: block;
+      animation: fadeIn 0.4s;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+    .hero {
+      max-width: 700px;
+      margin: 48px auto 0 auto;
+      background: var(--card-bg);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 44px 32px 32px 32px;
+      text-align: center;
+    }
+    .hero h2 {
+      font-size: 2rem;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+    .hero p {
+      font-size: 1.06rem;
+      color: var(--text);
+      opacity: 0.93;
+    }
+    .hero form {
+      margin-top: 26px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .hero textarea {
+      padding: 13px;
+      border: 1px solid #2d2f38;
+      border-radius: 6px;
+      font-size: 1rem;
+      width: 100%;
+      min-height: 70px;
+      box-sizing: border-box;
+      resize: vertical;
+      background: var(--muted);
+      color: var(--text);
+    }
+    .hero button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 14px;
+      border-radius: 6px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+      box-shadow: 0 2px 8px rgba(0,191,174,0.09);
+    }
+    .hero button:hover {
+      background: var(--accent-hover);
+    }
+    .cloud-types {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      margin: 44px auto 0 auto;
+      max-width: 900px;
+      flex-wrap: wrap;
+    }
+    .cloud-type {
+      background: var(--muted);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 28px 18px;
+      flex: 1 1 230px;
+      min-width: 200px;
+      max-width: 300px;
+      text-align: center;
+      margin-bottom: 18px;
+      border: 1px solid #23262f;
+    }
+    .cloud-type h3 {
+      margin-top: 0;
+      color: var(--accent);
+      font-size: 1.13rem;
+    }
+    .cloud-type .ct-badge {
+      display: inline-block;
+      background: #1b232a;
+      color: var(--accent);
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: 14px;
+      padding: 2px 12px;
+      margin-bottom: 10px;
+    }
+    .cloud-type ul {
+      text-align: left;
+      margin: 16px 0 0 0;
+      padding: 0 0 0 18px;
+      font-size: 0.97rem;
+      color: var(--text);
+      opacity: 0.92;
+    }
+    .features {
+      max-width: 1100px;
+      margin: 54px auto 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 32px;
+      justify-content: center;
+    }
+    .feature {
+      background: var(--muted);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 28px 18px;
+      flex: 1 1 260px;
+      min-width: 200px;
+      max-width: 340px;
+      text-align: center;
+      border: 1px solid #23262f;
+    }
+    .feature h4 {
+      margin-top: 0;
+      color: var(--accent);
+      font-size: 1.13rem;
+    }
+    .feature p {
+      font-size: 1rem;
+      color: var(--text);
+      opacity: 0.85;
+    }
+    .pricing {
+      background: #20232b;
+      padding: 54px 0;
+      margin-top: 62px;
+    }
+    .pricing-table {
+      display: flex;
+      gap: 32px;
+      justify-content: center;
+      flex-wrap: wrap;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .plan {
+      background: var(--card-bg);
+      border-radius: 10px;
+      box-shadow: var(--shadow);
+      padding: 32px 28px;
+      min-width: 220px;
+      max-width: 280px;
+      text-align: center;
+      border: 1px solid #23262f;
+    }
+    .plan h5 {
+      margin-top: 0;
+      color: var(--accent);
+      font-size: 1.1rem;
+    }
+    .plan .price {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 16px 0 8px 0;
+    }
+    .plan ul {
+      list-style: none;
+      padding: 0;
+      margin: 18px 0 0 0;
+      font-size: 1rem;
+      color: var(--text);
+      opacity: 0.85;
+    }
+    .plan ul li {
+      margin-bottom: 10px;
+    }
+    .plan button {
+      margin-top: 22px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+      box-shadow: 0 2px 8px rgba(0,191,174,0.09);
+    }
+    .plan button:hover {
+      background: var(--accent-hover);
+    }
+    .recommendation-page {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 32px;
+      background: var(--card-bg);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      display: none;
+      color: var(--text);
+      animation: fadeIn 0.4s;
+    }
+    .recommendation-page.active {
+      display: block;
+    }
+    .provider-card {
+      background: var(--muted);
+      border-radius: 12px;
+      padding: 24px;
+      margin: 16px 0;
+      box-shadow: var(--shadow);
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      border: 1px solid #23262f;
+    }
+    .provider-logo {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      background: #fff;
+      border-radius: 8px;
+      padding: 4px;
+    }
+    .back-button {
+      background: var(--muted);
+      color: var(--text);
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      border: none;
+      margin-bottom: 24px;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .back-button:hover {
+      background: #353945;
+    }
+    footer {
+      margin-top: 48px;
+      background: var(--card-bg);
+      color: var(--text);
+      text-align: center;
+      padding: 32px 0 18px 0;
+      font-size: 1rem;
+      opacity: 0.92;
+      border-top: 1px solid #23262f;
+    }
+    footer a {
+      color: var(--accent);
+      text-decoration: underline;
+    }
+    @media (max-width: 900px) {
+      .cloud-types, .features, .pricing-table { flex-direction: column; align-items: center; }
+      .recommendation-page { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <img src="assets/img/cluef-logo.png" alt="Cluef Logo" width="120">
+    </div>
+    <h1>Cluef</h1>
+    <p>Die KI-gestützte Plattform, die dir unabhängig die beste Cloud-Lösung empfiehlt – <b>SaaS, PaaS & IaaS</b> im Vergleich.</p>
+    <nav>
+      <a onclick="showSection('home')">Start</a>
+      <a onclick="showSection('pricing')">Preise</a>
+    </nav>
+  </header>
+
+  <!-- Startseite -->
+  <section id="home" class="hero active">
+    <h2>Welche Cloud-Lösung passt zu deinem Projekt?</h2>
+    <p>Beschreibe dein Vorhaben – Cluef stellt Rückfragen, analysiert deinen Bedarf und empfiehlt dir unabhängig die passenden Anbieter aus SaaS, PaaS und IaaS, inklusive aktueller Preise.</p>
+    <form id="recommendationForm">
+      <textarea id="projectDescription" placeholder="Beschreibe dein Projekt, z.B. 'App-Hosting für 10.000 Nutzer, DSGVO-konform, wenig Wartungsaufwand'"></textarea>
+      <button type="submit">Empfehlung starten</button>
+    </form>
+    <div class="cloud-types">
+      <div class="cloud-type">
+        <div class="ct-badge">SaaS</div>
+        <h3>Software as a Service</h3>
+        <ul>
+          <li>Fertige Anwendungen direkt nutzbar</li>
+          <li>Kein Wartungsaufwand</li>
+          <li>Beispiele: Salesforce, Slack, Shopify</li>
+        </ul>
+      </div>
+      <div class="cloud-type">
+        <div class="ct-badge">PaaS</div>
+        <h3>Platform as a Service</h3>
+        <ul>
+          <li>Plattform für Entwickler</li>
+          <li>App-Hosting ohne Infrastrukturverwaltung</li>
+          <li>Beispiele: Heroku, Google App Engine, Vercel</li>
+        </ul>
+      </div>
+      <div class="cloud-type">
+        <div class="ct-badge">IaaS</div>
+        <h3>Infrastructure as a Service</h3>
+        <ul>
+          <li>Maximale Kontrolle & Flexibilität</li>
+          <li>Virtuelle Server, Netzwerke, Storage</li>
+          <li>Beispiele: AWS EC2, Azure, Google Compute</li>
+        </ul>
+      </div>
+    </div>
+    <div class="features">
+      <div class="feature">
+        <h4>KI-gestützte Beratung</h4>
+        <p>Unsere AI analysiert deine Anforderungen, stellt gezielte Rückfragen und findet die optimale Cloud-Lösung – unabhängig und transparent.</p>
+      </div>
+      <div class="feature">
+        <h4>Alle Cloud-Modelle</h4>
+        <p>Cluef berücksichtigt SaaS, PaaS und IaaS gleichermaßen – für Startups, Mittelstand und Enterprise.</p>
+      </div>
+      <div class="feature">
+        <h4>Aktuelle Preisdaten</h4>
+        <p>Tagesaktuelle Preise & Features von hunderten Anbietern – automatisch gesammelt und verglichen.</p>
+      </div>
+      <div class="feature">
+        <h4>Transparente Vergleiche</h4>
+        <p>Vergleiche Anbieter, Funktionen und Kosten auf einen Blick. Keine versteckten Empfehlungen, keine Werbung.</p>
+      </div>
+      <div class="feature">
+        <h4>Einfach & Sicher</h4>
+        <p>Keine IT-Kenntnisse nötig. Datenschutz und Sicherheit stehen bei uns an erster Stelle.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Empfehlungsseite -->
+  <section id="recommendations" class="recommendation-page">
+    <button class="back-button" onclick="showSection('home')">← Zurück</button>
+    <h2>Empfohlene Lösungen</h2>
+    <div id="recommendationResults"></div>
+  </section>
+
+  <!-- Preissektion -->
+  <section id="pricing" class="pricing">
+    <h2 style="text-align:center; color:var(--accent); margin-bottom:36px;">Preise</h2>
+    <div class="pricing-table">
+      <div class="plan">
+        <h5>Free</h5>
+        <div class="price">0€</div>
+        <ul>
+          <li>3 KI-Empfehlungen/Monat</li>
+          <li>Basis-Vergleich</li>
+          <li>E-Mail-Support</li>
+        </ul>
+        <button onclick="alert('Sie haben das Free-Paket gewählt!')">Jetzt starten</button>
+      </div>
+      <div class="plan">
+        <h5>Pro</h5>
+        <div class="price">29€</div>
+        <ul>
+          <li>Unbegrenzte Empfehlungen</li>
+          <li>Detaillierte Vergleiche</li>
+          <li>Priorisierter Support</li>
+        </ul>
+        <button onclick="alert('Sie werden zum Pro-Paket weitergeleitet!')">Pro buchen</button>
+      </div>
+      <div class="plan">
+        <h5>Enterprise</h5>
+        <div class="price">ab 299€</div>
+        <ul>
+          <li>Team-Zugänge</li>
+          <li>API-Integration</li>
+          <li>Individuelle Beratung</li>
+        </ul>
+        <button onclick="alert('Wir kontaktieren Sie für das Enterprise-Paket!')">Kontakt aufnehmen</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 Cluef – Die unabhängige Cloud-Empfehlungsplattform<br>
+      <a href="mailto:hello@cluef.com">hello@cluef.com</a>
+    </p>
+    <p style="font-size:0.9em; opacity:0.7;">Wir erhalten ggf. Affiliate-Provisionen, unsere Empfehlungen bleiben jedoch strikt unabhängig.</p>
+  </footer>
+
+  <script>
+    // Zeige nur die gewünschte Section
+    function showSection(sectionId) {
+      document.querySelectorAll('section').forEach(section => {
+        section.classList.remove('active');
+      });
+      document.getElementById(sectionId).classList.add('active');
+      window.scrollTo(0, 0);
+    }
+
+    // Formularverarbeitung und Empfehlungen
+    document.getElementById('recommendationForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const description = document.getElementById('projectDescription').value.trim();
+
+      // Simulierte KI-Empfehlungen (hier kannst du später echte KI integrieren)
+      const recommendations = [
+        {
+          name: "AWS EC2 (IaaS)",
+          logo: "https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg",
+          reason: "Ideal für flexible Infrastruktur mit voller Kontrolle.",
+          price: "Ab $0.0116/Stunde"
+        },
+        {
+          name: "Heroku (PaaS)",
+          logo: "https://upload.wikimedia.org/wikipedia/en/a/a9/Heroku_logo.svg",
+          reason: "Perfekt für schnelle App-Bereitstellung ohne Server-Management.",
+          price: "Ab $7/Monat"
+        },
+        {
+          name: "Shopify (SaaS)",
+          logo: "https://upload.wikimedia.org/wikipedia/commons/6/62/Shopify_logo_2018.svg",
+          reason: "Einfache E-Commerce-Lösung, sofort startklar.",
+          price: "Ab $29/Monat"
+        }
+      ];
+
+      // Ergebnisse anzeigen
+      const resultsContainer = document.getElementById('recommendationResults');
+      resultsContainer.innerHTML = '';
+
+      recommendations.forEach(provider => {
+        const card = document.createElement('div');
+        card.className = 'provider-card';
+        card.innerHTML = `
+          <img src="${provider.logo}" class="provider-logo" alt="${provider.name}">
+          <div>
+            <h3>${provider.name}</h3>
+            <p>${provider.reason}</p>
+            <p><strong>Preis:</strong> ${provider.price}</p>
+          </div>
+        `;
+        resultsContainer.appendChild(card);
+      });
+
+      showSection('recommendations');
+    });
+
+    // Standardmäßig Startseite anzeigen
+    showSection('home');
+  </script>
+</body>
+</html>
