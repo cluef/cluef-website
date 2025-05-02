@@ -513,54 +513,50 @@
     <p style="font-size:0.9em; opacity:0.7;">Wir erhalten ggf. Affiliate-Provisionen, unsere Empfehlungen bleiben jedoch strikt unabhängig.</p>
   </footer>
 
-  <!-- Auth0 SDK + Initialisierung -->
+  <!-- Auth0 SDK + Initialisierung nach Quickstart -->
   <script src="https://cdn.auth0.com/js/auth0-spa-js/2.1/auth0-spa-js.production.js"></script>
   <script>
-    const auth0Config = {
-      domain: "dev-t1ny22z2aw3ppns2.us.auth0.com",
-      clientId: "MQDJdpQhMUQATtlQfHVq6yJhlLC8UOuF",
-      authorizationParams: {
-        redirect_uri: window.location.origin
-      }
-    };
-
     let auth0Client = null;
+    async function configureClient() {
+      auth0Client = await createAuth0Client({
+        domain: "dev-t1ny22z2aw3ppns2.us.auth0.com",
+        clientId: "MQDJdpQhMUQATtlQfHVq6yJhlLC8UOuF",
+        authorizationParams: {
+          redirect_uri: window.location.origin
+        }
+      });
+    }
 
-    async function updateAuth0UI() {
+    async function updateUI() {
       const isAuthenticated = await auth0Client.isAuthenticated();
-      document.getElementById('login-btn').style.display = isAuthenticated ? 'none' : 'block';
-      document.getElementById('logout-btn').style.display = isAuthenticated ? 'block' : 'none';
+      document.getElementById("login-btn").style.display = isAuthenticated ? "none" : "block";
+      document.getElementById("logout-btn").style.display = isAuthenticated ? "block" : "none";
       if (isAuthenticated) {
         const user = await auth0Client.getUser();
-        document.getElementById('profile-info').textContent = user.name || user.email;
-        document.getElementById('profile-info').style.display = 'inline-block';
+        document.getElementById("profile-info").textContent = user.name || user.email;
+        document.getElementById("profile-info").style.display = "inline-block";
       } else {
-        document.getElementById('profile-info').style.display = 'none';
+        document.getElementById("profile-info").style.display = "none";
       }
     }
 
-    async function initAuth0() {
-      auth0Client = await createAuth0Client(auth0Config);
+    window.onload = async () => {
+      await configureClient();
 
-      document.getElementById('login-btn').addEventListener('click', () => {
-        auth0Client.loginWithRedirect();
-      });
-
-      document.getElementById('logout-btn').addEventListener('click', () => {
-        auth0Client.logout({
-          logoutParams: { returnTo: window.location.origin }
-        });
-      });
-
-      if (window.location.search.includes('code=')) {
+      // Redirect-Callback nach Login verarbeiten
+      const query = window.location.search;
+      if (query.includes("code=") && query.includes("state=")) {
         await auth0Client.handleRedirectCallback();
-        window.history.replaceState({}, document.title, '/');
+        window.history.replaceState({}, document.title, "/");
       }
 
-      await updateAuth0UI();
-    }
+      await updateUI();
 
-    document.addEventListener('DOMContentLoaded', initAuth0);
+      document.getElementById("login-btn").onclick = () => auth0Client.loginWithRedirect();
+      document.getElementById("logout-btn").onclick = () => auth0Client.logout({
+        logoutParams: { returnTo: window.location.origin }
+      });
+    };
 
     // Seitenumschaltung (wie gehabt)
     function showSection(sectionId) {
