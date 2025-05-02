@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Cluef – Cloud-Empfehlungsplattform</title>
   <link href="https://fonts.googleapis.com/css?family=Inter:400,700&display=swap" rel="stylesheet">
+  <script src="https://cdn.auth0.com/js/auth0-spa-js/2.0/auth0-spa-js.production.js"></script>
   <style>
     :root {
       --dark-bg: #181a20;
@@ -28,6 +29,7 @@
       padding: 32px 0 18px 0;
       text-align: center;
       box-shadow: var(--shadow);
+      position: relative;
     }
     .logo {
       margin-bottom: 10px;
@@ -58,6 +60,75 @@
     nav a:hover {
       opacity: 1;
       text-decoration: underline;
+    }
+    #auth0-login-container {
+      position: absolute;
+      top: 24px;
+      right: 32px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #login-btn, #logout-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-left: 8px;
+      transition: background 0.2s;
+    }
+    #login-btn:hover, #logout-btn:hover {
+      background: var(--accent-hover);
+    }
+    #profile-info {
+      display: inline-block;
+      margin-left: 12px;
+      font-size: 0.95rem;
+      color: var(--text);
+      background: var(--muted);
+      border-radius: 6px;
+      padding: 4px 10px;
+      vertical-align: middle;
+    }
+    .welcome-user {
+      margin-top: 10px;
+      font-size: 1.08rem;
+      color: var(--accent);
+      background: var(--muted);
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+    .pro-hint {
+      margin: 18px auto 0 auto;
+      background: #183f3c;
+      color: #00bfae;
+      border-radius: 8px;
+      max-width: 600px;
+      padding: 14px 18px;
+      font-size: 1.05rem;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .spinner {
+      display: inline-block;
+      width: 28px;
+      height: 28px;
+      border: 4px solid var(--accent);
+      border-top: 4px solid var(--muted);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      100% { transform: rotate(360deg);}
     }
     section {
       display: none;
@@ -255,71 +326,51 @@
     .plan button:hover {
       background: var(--accent-hover);
     }
-    .recommendation-page {
-      max-width: 800px;
-      margin: 40px auto;
-      padding: 32px;
-      background: var(--card-bg);
-      border-radius: 14px;
-      box-shadow: var(--shadow);
-      display: none;
-      color: var(--text);
-      animation: fadeIn 0.4s;
-    }
-    .recommendation-page.active {
-      display: block;
-    }
-    .provider-card {
+    #recommendationResults {
+      margin: 32px auto 0 auto;
       background: var(--muted);
-      border-radius: 12px;
-      padding: 24px;
-      margin: 16px 0;
+      color: var(--text);
+      border-radius: 10px;
+      max-width: 700px;
+      padding: 24px 16px;
+      font-size: 1.1rem;
+      min-height: 40px;
       box-shadow: var(--shadow);
+      text-align: left;
+      white-space: pre-line;
+    }
+    .login-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.85);
       display: flex;
+      justify-content: center;
       align-items: center;
-      gap: 20px;
-      border: 1px solid #23262f;
+      z-index: 1000;
+      animation: fadeIn 0.3s;
     }
-    .provider-logo {
-      width: 60px;
-      height: 60px;
-      object-fit: contain;
-      background: #fff;
-      border-radius: 8px;
-      padding: 4px;
-    }
-    .back-button {
-      background: var(--muted);
-      color: var(--text);
-      padding: 12px 24px;
-      border-radius: 6px;
-      cursor: pointer;
-      border: none;
-      margin-bottom: 24px;
-      font-size: 1rem;
-      font-weight: 600;
-      transition: background 0.2s;
-    }
-    .back-button:hover {
-      background: #353945;
-    }
-    footer {
-      margin-top: 48px;
+    .login-modal-content {
       background: var(--card-bg);
-      color: var(--text);
+      padding: 36px;
+      border-radius: 12px;
+      max-width: 480px;
       text-align: center;
-      padding: 32px 0 18px 0;
-      font-size: 1rem;
-      opacity: 0.92;
-      border-top: 1px solid #23262f;
+      box-shadow: var(--shadow);
     }
-    footer a {
+    .login-modal h3 {
       color: var(--accent);
-      text-decoration: underline;
+      margin-top: 0;
+    }
+    .login-modal p {
+      margin-bottom: 24px;
     }
     @media (max-width: 900px) {
       .cloud-types, .features, .pricing-table { flex-direction: column; align-items: center; }
       .recommendation-page { padding: 18px; }
+      #auth0-login-container { right: 10px; top: 10px;}
     }
   </style>
 </head>
@@ -334,16 +385,35 @@
       <a onclick="showSection('home')">Start</a>
       <a onclick="showSection('pricing')">Preise</a>
     </nav>
+    <!-- Auth0 Login/Logout rechts oben -->
+    <div id="auth0-login-container">
+      <button id="login-btn" style="display:none;">Login</button>
+      <button id="logout-btn" style="display:none;">Logout</button>
+      <span id="profile-info" style="display:none;"></span>
+    </div>
   </header>
 
-  <!-- Startseite -->
+  <!-- Login-Modal für Limit-Warnung -->
+  <div id="login-modal" class="login-modal" style="display: none;">
+    <div class="login-modal-content">
+      <h3>Limit erreicht</h3>
+      <p>Du hast das kostenlose Limit von 3 Anfragen erreicht. Bitte melde dich an, um fortzufahren und unbegrenzt viele Empfehlungen zu erhalten.</p>
+      <button id="modal-login-button" class="login-button">Jetzt anmelden</button>
+    </div>
+  </div>
+
   <section id="home" class="hero active">
+    <div id="welcome-user" class="welcome-user" style="display:none;"></div>
     <h2>Welche Cloud-Lösung passt zu deinem Projekt?</h2>
     <p>Beschreibe dein Vorhaben – Cluef stellt Rückfragen, analysiert deinen Bedarf und empfiehlt dir unabhängig die passenden Anbieter aus SaaS, PaaS und IaaS, inklusive aktueller Preise.</p>
     <form id="recommendationForm">
       <textarea id="projectDescription" placeholder="Beschreibe dein Projekt, z.B. 'App-Hosting für 10.000 Nutzer, DSGVO-konform, wenig Wartungsaufwand'"></textarea>
       <button type="submit">Empfehlung starten</button>
     </form>
+    <div id="recommendationResults"></div>
+    <div id="pro-hint" class="pro-hint" style="display:none;">
+      Du bist eingeloggt und kannst jetzt unbegrenzt viele Empfehlungen erhalten. Viel Erfolg bei deinem Projekt!
+    </div>
     <div class="cloud-types">
       <div class="cloud-type">
         <div class="ct-badge">SaaS</div>
@@ -397,14 +467,6 @@
     </div>
   </section>
 
-  <!-- Empfehlungsseite -->
-  <section id="recommendations" class="recommendation-page">
-    <button class="back-button" onclick="showSection('home')">← Zurück</button>
-    <h2>Empfohlene Lösungen</h2>
-    <div id="recommendationResults"></div>
-  </section>
-
-  <!-- Preissektion -->
   <section id="pricing" class="pricing">
     <h2 style="text-align:center; color:var(--accent); margin-bottom:36px;">Preise</h2>
     <div class="pricing-table">
@@ -444,12 +506,16 @@
   <footer>
     <p>© 2025 Cluef – Die unabhängige Cloud-Empfehlungsplattform<br>
       <a href="mailto:hello@cluef.com">hello@cluef.com</a>
+      &nbsp;|&nbsp;
+      <a href="/impressum.html">Impressum</a>
+      &nbsp;|&nbsp;
+      <a href="/datenschutz.html">Datenschutz</a>
     </p>
     <p style="font-size:0.9em; opacity:0.7;">Wir erhalten ggf. Affiliate-Provisionen, unsere Empfehlungen bleiben jedoch strikt unabhängig.</p>
   </footer>
 
   <script>
-    // Zeige nur die gewünschte Section
+    // Seitenumschaltung
     function showSection(sectionId) {
       document.querySelectorAll('section').forEach(section => {
         section.classList.remove('active');
@@ -458,56 +524,142 @@
       window.scrollTo(0, 0);
     }
 
-    // Formularverarbeitung und Empfehlungen
-    document.getElementById('recommendationForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const description = document.getElementById('projectDescription').value.trim();
+    // Auth0 Konfiguration – Deine Daten!
+    const auth0Config = {
+      domain: "dev-t1ny22z2aw3ppns2.us.auth0.com",
+      clientId: "MQDJdpQhMUQATtlQfHVq6yJhlLC8UOuF",
+      redirect_uri: window.location.origin
+    };
 
-      // Simulierte KI-Empfehlungen (hier kannst du später echte KI integrieren)
-      const recommendations = [
-        {
-          name: "AWS EC2 (IaaS)",
-          logo: "https://upload.wikimedia.org/wikipedia/commons/9/93/Amazon_Web_Services_Logo.svg",
-          reason: "Ideal für flexible Infrastruktur mit voller Kontrolle.",
-          price: "Ab $0.0116/Stunde"
-        },
-        {
-          name: "Heroku (PaaS)",
-          logo: "https://upload.wikimedia.org/wikipedia/en/a/a9/Heroku_logo.svg",
-          reason: "Perfekt für schnelle App-Bereitstellung ohne Server-Management.",
-          price: "Ab $7/Monat"
-        },
-        {
-          name: "Shopify (SaaS)",
-          logo: "https://upload.wikimedia.org/wikipedia/commons/6/62/Shopify_logo_2018.svg",
-          reason: "Einfache E-Commerce-Lösung, sofort startklar.",
-          price: "Ab $29/Monat"
+    let auth0 = null;
+    let isAuthenticated = false;
+    let user = null;
+    let promptCount = 0;
+    const MAX_UNAUTH_PROMPTS = 3;
+
+    function showLoginModal() {
+      document.getElementById('login-modal').style.display = 'flex';
+    }
+    function hideLoginModal() {
+      document.getElementById('login-modal').style.display = 'none';
+    }
+
+    // Auth0 Initialisierung und UI-Handling
+    async function initAuth0() {
+      auth0 = await createAuth0Client(auth0Config);
+
+      // Handle Redirect-Callback nach Login
+      if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
+        await auth0.handleRedirectCallback();
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+
+      isAuthenticated = await auth0.isAuthenticated();
+      const loginBtn = document.getElementById("login-btn");
+      const logoutBtn = document.getElementById("logout-btn");
+      const profileInfo = document.getElementById("profile-info");
+      const welcomeUser = document.getElementById("welcome-user");
+      const proHint = document.getElementById("pro-hint");
+
+      if (isAuthenticated) {
+        user = await auth0.getUser();
+        loginBtn.style.display = "none";
+        logoutBtn.style.display = "inline-block";
+        profileInfo.style.display = "inline-block";
+        profileInfo.textContent = user.name || user.email || "Eingeloggt";
+        welcomeUser.style.display = "inline-block";
+        welcomeUser.textContent = `Willkommen, ${user.name || user.email}!`;
+        proHint.style.display = "block";
+        // Prompt-Limit zurücksetzen
+        localStorage.removeItem('cluef_prompt_count');
+        promptCount = 0;
+      } else {
+        loginBtn.style.display = "inline-block";
+        logoutBtn.style.display = "none";
+        profileInfo.style.display = "none";
+        profileInfo.textContent = "";
+        welcomeUser.style.display = "none";
+        proHint.style.display = "none";
+        promptCount = parseInt(localStorage.getItem('cluef_prompt_count') || '0');
+      }
+    }
+
+    function canMakeMoreRequests() {
+      if (isAuthenticated) return true;
+      return promptCount < MAX_UNAUTH_PROMPTS;
+    }
+
+    function incrementPromptCount() {
+      if (!isAuthenticated) {
+        promptCount++;
+        localStorage.setItem('cluef_prompt_count', promptCount.toString());
+      }
+    }
+
+    // KI-Funktion: Anfrage an Netlify Function
+    async function getCluefRecommendation(userPrompt) {
+      if (!canMakeMoreRequests()) {
+        showLoginModal();
+        return "Bitte melde dich an, um weitere Empfehlungen zu erhalten.";
+      }
+      incrementPromptCount();
+
+      const resultsDiv = document.getElementById('recommendationResults');
+      resultsDiv.innerHTML = `<span class="spinner"></span> Die KI arbeitet ...`;
+
+      try {
+        const headers = { 'Content-Type': 'application/json' };
+        if (isAuthenticated) {
+          headers['Authorization'] = `Bearer ${await auth0.getTokenSilently()}`;
         }
-      ];
+        const response = await fetch('/.netlify/functions/cluef-ai', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ prompt: userPrompt })
+        });
+        if (!response.ok) {
+          throw new Error('Fehler beim Abrufen der KI-Antwort');
+        }
+        const data = await response.json();
+        return data.reply;
+      } catch (error) {
+        return "Es gab ein Problem bei der Anfrage: " + error.message;
+      }
+    }
 
-      // Ergebnisse anzeigen
-      const resultsContainer = document.getElementById('recommendationResults');
-      resultsContainer.innerHTML = '';
+    document.addEventListener("DOMContentLoaded", async () => {
+      await initAuth0();
 
-      recommendations.forEach(provider => {
-        const card = document.createElement('div');
-        card.className = 'provider-card';
-        card.innerHTML = `
-          <img src="${provider.logo}" class="provider-logo" alt="${provider.name}">
-          <div>
-            <h3>${provider.name}</h3>
-            <p>${provider.reason}</p>
-            <p><strong>Preis:</strong> ${provider.price}</p>
-          </div>
-        `;
-        resultsContainer.appendChild(card);
+      document.getElementById("login-btn").addEventListener("click", () => {
+        auth0.loginWithRedirect();
+      });
+      document.getElementById("logout-btn").addEventListener("click", () => {
+        auth0.logout({ returnTo: window.location.origin });
+      });
+      document.getElementById("modal-login-button").addEventListener("click", () => {
+        hideLoginModal();
+        auth0.loginWithRedirect();
       });
 
-      showSection('recommendations');
-    });
+      // Formular-Handler
+      document.getElementById('recommendationForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const userPrompt = document.getElementById('projectDescription').value.trim();
+        const resultsDiv = document.getElementById('recommendationResults');
 
-    // Standardmäßig Startseite anzeigen
-    showSection('home');
+        if (!canMakeMoreRequests()) {
+          showLoginModal();
+          return;
+        }
+
+        resultsDiv.innerHTML = `<span class="spinner"></span> Die KI arbeitet ...`;
+        const reply = await getCluefRecommendation(userPrompt);
+        resultsDiv.innerText = reply;
+      });
+
+      // Standardmäßig Startseite anzeigen
+      showSection('home');
+    });
   </script>
 </body>
 </html>
